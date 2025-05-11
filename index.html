@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Un Regalo para Mamá</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-fondo: #fde4e1; /* Rosa pastel suave */
+            --color-sobre-exterior: #ffc0cb; /* Rosa más vibrante */
+            --color-sobre-interior: #ffe4e1;
+            --color-papel-carta: #fffaf0; /* Florarblanco (blanco antiguo) */
+            --color-texto-principal: #5c3c32; /* Marrón oscuro */
+            --color-texto-remitente: #c83f49; /* Rojo suave para "De" */
+            --color-texto-destinatario: #7b4f60; /* Morado suave para "Para" */
+            --sombra: 0 10px 20px rgba(0,0,0,0.15), 0 6px 6px rgba(0,0,0,0.1);
+            --borde-redondeado: 15px;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--color-fondo) 0%, #fad0c4 100%);
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden; /* Prevenir scrollbars si la carta es muy grande */
+        }
+
+        .carta-contenedor {
+            position: relative;
+            perspective: 1500px;
+        }
+
+        .sobre-wrapper {
+            position: relative;
+            width: 320px;
+            height: 220px;
+            cursor: pointer;
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        .sobre-wrapper:hover {
+            transform: translateY(-10px) scale(1.03);
+        }
+
+        .sobre-wrapper.abierto .sobre-solapa {
+            transform: rotateX(180deg);
+        }
+
+        .sobre-wrapper.oculto {
+            transform: scale(0.8);
+            opacity: 0;
+            pointer-events: none; /* Importante para que no interfiera al mostrar la carta */
+        }
+
+
+        .sobre-fondo {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: var(--color-sobre-exterior);
+            border-radius: var(--borde-redondeado);
+            box-shadow: var(--sombra);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .sobre-solapa {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 55%; /* La mitad superior */
+            background-color: var(--color-sobre-exterior);
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            transform-origin: top;
+            transition: transform 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 2; /* Para que esté encima del contenido al cerrar */
+            clip-path: polygon(0 0, 100% 0, 100% 80%, 50% 100%, 0 80%);
+            border-top-left-radius: var(--borde-redondeado);
+            border-top-right-radius: var(--borde-redondeado);
+        }
+        .sobre-fondo::before { /* Interior del sobre visible */
+            content: '';
+            position: absolute;
+            top: 5px; left: 5px; right: 5px; bottom: 5px;
+            background-color: var(--color-sobre-interior);
+            border-radius: calc(var(--borde-redondeado) - 5px);
+            z-index: 0;
+        }
+
+
+        .destinatario-remitente {
+            position: relative; /* Para que esté sobre el ::before */
+            z-index: 1;
+        }
+
+        .destinatario-remitente p {
+            margin: 10px 0;
+            font-size: 1.3em;
+            font-family: 'Pacifico', cursive;
+        }
+        .destinatario-remitente .para {
+            color: var(--color-texto-destinatario);
+        }
+        .destinatario-remitente .de {
+            color: var(--color-texto-remitente);
+        }
+
+        /* La carta como tal */
+        .carta-contenido {
+            position: fixed; /* Para que aparezca sobre todo */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            width: 90vw;
+            max-width: 550px;
+            max-height: 80vh;
+            overflow-y: auto;
+            background-color: var(--color-papel-carta);
+            border: 1px solid #ddd;
+            border-radius: var(--borde-redondeado);
+            padding: 40px;
+            box-shadow: var(--sombra), 0 0 0 100vmax rgba(0,0,0,0.5); /* Sombra y overlay oscuro */
+            text-align: left;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out, visibility 0s 0.5s;
+            z-index: 100;
+            box-sizing: border-box;
+        }
+
+        .carta-contenido.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out, visibility 0s 0s;
+        }
+
+        .carta-contenido h2 {
+            font-family: 'Pacifico', cursive;
+            color: var(--color-texto-remitente);
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 2.2em;
+        }
+
+        .carta-contenido p {
+            font-size: 1.1em;
+            line-height: 1.7;
+            color: var(--color-texto-principal);
+            margin-bottom: 20px;
+        }
+
+        .carta-contenido .firma {
+            text-align: right;
+            font-style: italic;
+            margin-top: 35px;
+            font-family: 'Pacifico', cursive;
+            font-size: 1.3em;
+            color: #a0522d; /* Sienna */
+        }
+
+        /* Corazoncito que aparece al abrir */
+        .corazon {
+            position: absolute;
+            font-size: 2em;
+            color: var(--color-texto-remitente);
+            opacity: 0;
+            animation: flotarCorazon 1s ease-out forwards 0.5s; /* Inicia después de la solapa */
+        }
+
+        @keyframes flotarCorazon {
+            0% { transform: translateY(0) scale(0.5); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-50px) scale(1.2); opacity: 0; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="carta-contenedor">
+        <div id="sobre" class="sobre-wrapper" onclick="toggleCarta()">
+            <div class="sobre-solapa"></div>
+            <div class="sobre-fondo">
+                <div class="destinatario-remitente">
+                    <p class="para"><strong>Para:</strong> Mamá</p>
+                    <p class="de"><strong>De:</strong> Tu hijo ❤️</p>
+                </div>
+                <span class="corazon">💖</span>
+            </div>
+        </div>
+
+        <div id="mensaje" class="carta-contenido">
+            <h2>Mi Querida Mamá,</h2>
+            <p>
+                Hoy solo quería escribirte unas líneas desde el corazón para recordarte lo increíblemente especial que eres.
+                Tu amor incondicional es como un faro que siempre ilumina mi camino, y que siempre me ayuda cuando lo necesito.
+            </p>
+            <p>
+                Cada sacrificio que has hecho, cada sonrisa que me has regalado, cada abrazo que ha curado mis heridas... todo eso está guardado
+                en el rincón más preciado de mi memoria. Eres la personificación de la fuerza, la ternura y la bondad.
+            </p>
+            <p>
+                Gracias por ser mi ancla, mi inspiración y mi mayor fan. No existen suficientes "gracias" en el mundo para
+                demostrarte cuánto te valoro y te quiero. Eres, sencillamente, la mejor.
+            </p>
+            <p>
+                Que este pequeño detalle te alegre el día tanto como tu presencia alegra mi vida.
+            </p>
+            <p class="firma">Con un amor infinito,<br>Tu hijo que te admira profundamente.</p>
+        </div>
+    </div>
+
+    <script>
+        const sobreWrapper = document.getElementById('sobre');
+        const cartaContenido = document.getElementById('mensaje');
+        const corazonAnimado = document.querySelector('.sobre-wrapper .corazon');
+        let cartaAbierta = false;
+
+        function toggleCarta(event) {
+            // Prevenir que se cierre inmediatamente si se hace clic en el sobre cuando la carta está abierta
+            if (event) event.stopPropagation();
+
+            if (!cartaAbierta) {
+                // Abrir la carta
+                sobreWrapper.classList.add('abierto');
+                corazonAnimado.style.animation = 'flotarCorazon 1s ease-out forwards 0.5s'; // Reiniciar animación
+
+                setTimeout(() => {
+                    sobreWrapper.classList.add('oculto');
+                    cartaContenido.classList.add('visible');
+                    document.addEventListener('click', manejarClickFuera, true); // Captura en fase de captura
+                }, 700); // Debe ser igual o mayor que la duración de la animación de la solapa
+                cartaAbierta = true;
+            } else {
+                // Cerrar la carta
+                cartaContenido.classList.remove('visible');
+                document.removeEventListener('click', manejarClickFuera, true);
+                
+                setTimeout(() => {
+                    sobreWrapper.classList.remove('oculto');
+                    // Asegurarse que la solapa se muestre cerrándose
+                    // Pequeño hack: quitar y poner 'abierto' fuerza reflow si es necesario.
+                    // sobreWrapper.classList.remove('abierto'); // Lo quitamos para que se vea "cerrándose"
+                    requestAnimationFrame(() => {
+                        sobreWrapper.classList.remove('abierto');
+                    });
+                     // Resetear animación del corazón para la próxima vez
+                    corazonAnimado.style.animation = 'none';
+
+                }, 300); // Dar tiempo a que la carta se oculte antes de que aparezca el sobre
+                cartaAbierta = false;
+            }
+        }
+
+        function manejarClickFuera(event) {
+            if (cartaAbierta && cartaContenido.classList.contains('visible') && !cartaContenido.contains(event.target)) {
+                toggleCarta();
+            }
+        }
+
+        // Pequeño detalle para reiniciar la animación del corazón si el usuario interactúa rápidamente
+        sobreWrapper.addEventListener('animationend', () => {
+            if(corazonAnimado.style.animationName === 'flotarCorazon'){
+                 corazonAnimado.style.animation = 'none';
+            }
+        });
+
+    </script>
+
+</body>
+</html>
